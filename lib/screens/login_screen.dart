@@ -1,44 +1,14 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/user_provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final AuthService _authService = AuthService();
-  bool _isLoading = false;
-
-  Future<void> _signInWithGoogle() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      await _authService.signInWithGoogle();
-      // No need to navigate here as we'll handle navigation in the main.dart
-      // based on the auth state changes
-    } catch (e) {
-      // Show error message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error signing in: $e')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -67,12 +37,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 50),
-                  _isLoading
+                  userProvider.isLoading
                       ? const CircularProgressIndicator()
                       : SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
-                            onPressed: _signInWithGoogle,
+                            onPressed: () async {
+                              try {
+                                await userProvider.signInWithGoogle();
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Error signing in: $e')),
+                                  );
+                                }
+                              }
+                            },
                             icon: const Icon(Icons.login),
                             label: const Text('Sign in with Google'),
                             style: ElevatedButton.styleFrom(

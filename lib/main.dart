@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
-import 'services/auth_service.dart';
+import 'providers/user_provider.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -23,7 +23,14 @@ void main() async {
     }
   }
   
-  runApp(const MainApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+      ],
+      child: const MainApp(),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {
@@ -47,27 +54,22 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: AuthService().authStateChanges,
-      builder: (context, snapshot) {
-        // If the snapshot has user data, then they're already signed in
-        if (snapshot.connectionState == ConnectionState.active) {
-          User? user = snapshot.data;
-          if (user == null) {
-            // User is not signed in
-            return const LoginScreen();
-          }
-          // User is signed in
-          return HomeScreen();
-        }
-        
-        // Checking the auth state
-        return const Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
-        );
-      },
-    );
+    final userProvider = Provider.of<UserProvider>(context);
+    
+    // Show loading indicator while checking auth state
+    if (userProvider.isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    
+    // Check if user is authenticated
+    if (userProvider.isAuthenticated) {
+      return HomeScreen();
+    } else {
+      return const LoginScreen();
+    }
   }
 }
