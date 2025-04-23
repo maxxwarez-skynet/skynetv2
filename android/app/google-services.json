@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "523296816563",
+    "project_id": "skynet-17582",
+    "storage_bucket": "skynet-17582.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:523296816563:android:7df23f93529182c8141fc6",
+        "android_client_info": {
+          "package_name": "com.example.skynet"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "523296816563-gorf1dt7ut94abdco9e8idemu1hga7o1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.skynet",
+            "certificate_hash": "575a1d2571968f2601298e2b5f5c4aca9101d029"
+          }
+        },
+        {
+          "client_id": "523296816563-csl16a91gv3vdb0d63s7if84nmik0eid.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHIibW6tzIy9cLvnu2HDJ4JfvqaW5dMvE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "523296816563-csl16a91gv3vdb0d63s7if84nmik0eid.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
