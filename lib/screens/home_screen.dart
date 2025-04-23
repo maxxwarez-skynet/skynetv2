@@ -1,14 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../providers/user_provider.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Refresh user profile when screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      if (userProvider.isAuthenticated) {
+        userProvider.refreshUserProfile();
+      }
+    });
+  }
+
+  String _formatDateTime(DateTime? dateTime) {
+    if (dateTime == null) return 'Never';
+    
+    final formatter = DateFormat('MMM d, yyyy - h:mm a');
+    return formatter.format(dateTime);
+  }
 
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
+
     final user = userProvider.currentUser;
+    final userProfile = userProvider.userProfile;
+    
     
     return Scaffold(
       appBar: AppBar(
@@ -61,6 +89,29 @@ class HomeScreen extends StatelessWidget {
                   fontSize: 16,
                 ),
               ),
+              const SizedBox(height: 20),
+              // Last login information
+              if (userProfile != null) ...[
+                const Divider(),
+                const SizedBox(height: 10),
+                Text(
+                  'Account created: ${_formatDateTime(userProfile.createdAt)}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  'Previous login: ${_formatDateTime(userProfile.lastLoginAt)}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const Divider(),
+              ],
+
             ],
           ),
         ),
