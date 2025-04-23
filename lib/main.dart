@@ -13,15 +13,13 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print('Firebase initialized successfully');
   } catch (e) {
-    print('Error initializing Firebase: $e');
     // Fallback to initialize without options if there's an error
     try {
       await Firebase.initializeApp();
-      print('Firebase initialized without options');
     } catch (e) {
-      print('Error initializing Firebase without options: $e');
+      const Text('Failed to initialize Firebase');
+      rethrow;
     }
   }
   

@@ -23,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
       // based on the auth state changes
     } catch (e) {
       // Show error message
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error signing in: $e')),
         );
