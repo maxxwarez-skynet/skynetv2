@@ -33,14 +33,20 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
-
     final user = userProvider.currentUser;
-    final userProfile = userProvider.userProfile;
-    
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        // Remove the title to make space for the avatar on the left
+        title: const Text(''),
+        leading: user.photoURL != null
+            ? Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: CircleAvatar(
+                  backgroundImage: NetworkImage(user.photoURL!),
+                ),
+              )
+            : null,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -51,71 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Welcome to Skynet!',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'You are signed in as:',
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 10),
-              if (user.photoURL != null)
-                CircleAvatar(
-                  radius: 40,
-                  backgroundImage: NetworkImage(user.photoURL!),
-                ),
-              const SizedBox(height: 10),
-              Text(
-                user.displayName ?? 'User',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                user.email ?? '',
-                style: const TextStyle(
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Last login information
-              if (userProfile != null) ...[
-                const Divider(),
-                const SizedBox(height: 10),
-                Text(
-                  'Account created: ${_formatDateTime(userProfile.createdAt)}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  'Previous login: ${_formatDateTime(userProfile.lastLoginAt)}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const Divider(),
-              ],
-
-            ],
-          ),
-        ),
-      ),
+      body: Container(), // Empty body as requested
     );
   }
 }
