@@ -46,11 +46,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'YOUR_API_KEY',
-    appId: 'YOUR_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyCHIibW6tzIy9cLvnu2HDJ4JfvqaW5dMvE',
+    appId: '1:523296816563:android:7df23f93529182c8141fc6',
+    messagingSenderId: '523296816563',
+    projectId: 'skynet-17582',
+    storageBucket: 'skynet-17582.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
