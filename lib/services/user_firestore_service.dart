@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_profile_model.dart';
+import '../utils/logger.dart';
 
 class UserFirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final Logger _logger = Logger('UserFirestoreService');
   
   // Collection reference
   CollectionReference get usersCollection => _firestore.collection('users');
@@ -20,7 +22,7 @@ class UserFirestoreService {
       }
       return null;
     } catch (e) {
-      print('Error getting user profile: $e');
+      _logger.e('Error getting user profile', e);
       return null;
     }
   }
@@ -34,7 +36,7 @@ class UserFirestoreService {
       if (doc.exists) {
         // User exists, update last login time
         UserProfileModel existingProfile = UserProfileModel.fromFirestore(doc);
-        UserProfileModel updatedProfile = existingProfile.updateLastLogin();
+        existingProfile.updateLastLogin();
         
         await getUserDocRef(firebaseUser.uid).update({
           'lastLoginAt': Timestamp.fromDate(DateTime.now()),
@@ -51,7 +53,7 @@ class UserFirestoreService {
         await getUserDocRef(firebaseUser.uid).set(newProfile.toFirestore());
       }
     } catch (e) {
-      print('Error creating/updating user profile: $e');
+      _logger.e('Error creating/updating user profile', e);
       rethrow;
     }
   }

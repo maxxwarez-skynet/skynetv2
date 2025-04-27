@@ -4,8 +4,10 @@ import '../models/user_model.dart';
 import '../models/user_profile_model.dart';
 import '../services/auth_service.dart';
 import '../services/user_firestore_service.dart';
+import '../utils/logger.dart';
 
 class UserProvider with ChangeNotifier {
+  final Logger _logger = Logger('UserProvider');
   UserModel _currentUser = UserModel(uid: '');
   UserProfileModel? _userProfile;
   final AuthService _authService = AuthService();
@@ -44,7 +46,7 @@ class UserProvider with ChangeNotifier {
       // Update the current user
       updateUser(user);
     } catch (e) {
-      print('Error handling user sign in: $e');
+      _logger.e('Error handling user sign in', e);
       // Still update the user even if Firestore operations fail
       updateUser(user);
     }
@@ -66,7 +68,7 @@ class UserProvider with ChangeNotifier {
       // Auth state listener will handle Firestore operations
     } catch (e) {
       // Handle error
-      print('Error signing in with Google: $e');
+      _logger.e('Error signing in with Google', e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -82,7 +84,7 @@ class UserProvider with ChangeNotifier {
       await _authService.signOut();
       // Auth state listener will handle cleanup
     } catch (e) {
-      print('Error signing out: $e');
+      _logger.e('Error signing out', e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -97,7 +99,7 @@ class UserProvider with ChangeNotifier {
       _userProfile = await _userFirestoreService.getUserProfile(_currentUser.uid);
       notifyListeners();
     } catch (e) {
-      print('Error refreshing user profile: $e');
+      _logger.e('Error refreshing user profile', e);
     }
   }
 }
