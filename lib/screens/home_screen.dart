@@ -36,28 +36,42 @@ class _HomeScreenState extends State<HomeScreen> {
     final user = userProvider.currentUser;
     
     return Scaffold(
-      appBar: AppBar(
-        // Remove the title to make space for the avatar on the left
-        title: const Text(''),
-        leading: user.photoURL != null
-            ? Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: CircleAvatar(
-                  backgroundImage: NetworkImage(user.photoURL!),
-                ),
-              )
-            : null,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await userProvider.signOut();
-              // No need to navigate as we'll handle this in main.dart
-            },
+      // Remove the app bar completely for a full screen layout
+      appBar: null,
+      body: Stack(
+        children: [
+          // Full screen content (currently empty as requested)
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            color: Theme.of(context).scaffoldBackgroundColor,
+          ),
+          
+          // Avatar at top left
+          if (user.photoURL != null)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 10, // Account for status bar
+              left: 16,
+              child: CircleAvatar(
+                backgroundImage: NetworkImage(user.photoURL!),
+                radius: 20,
+              ),
+            ),
+            
+          // Logout button at top right
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10, // Account for status bar
+            right: 16,
+            child: IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () async {
+                await userProvider.signOut();
+                // No need to navigate as we'll handle this in main.dart
+              },
+            ),
           ),
         ],
       ),
-      body: Container(), // Empty body as requested
     );
   }
 }
