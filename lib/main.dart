@@ -1,75 +1,126 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
-import 'providers/user_provider.dart';
-import 'firebase_options.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import '../screens/home_page.dart';
+import '../services/auth_service.dart';
+import '../services/database_service.dart';
+ 
+/// The main entrypoint for the application.
+///
+/// Ensures Flutter is initialized, initializes Firebase,
+/// sets up error handling, and runs the app.
 void main() async {
+  // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
-  
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } catch (e) {
-    // Fallback to initialize without options if there's an error
-    try {
-      await Firebase.initializeApp();
-    } catch (e) {
-      const Text('Failed to initialize Firebase');
-      rethrow;
-    }
-  }
-  
-  runApp(
-    MultiProvider(
+
+  // Initialize Firebase
+  await Firebase.initializeApp();
+
+  // Set up error handling
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+  };
+
+  // Run the app
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider()),
+        Provider<AuthService>(
+          create: (_) => AuthService(),
+        ),
+        StreamProvider<User?>(
+          create: (context) => context.read<AuthService>().user,
+          initialData: null,
+        ),
       ],
-      child: const MainApp(),
-    ),
-  );
-}
-
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Skynet',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Garden Helper',
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.deepPurple,
+            brightness: Brightness.light,
+          ),
+        ),
+        home: const AuthenticationWrapper(),
       ),
-      home: const AuthWrapper(),
     );
   }
 }
 
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
+class AuthenticationWrapper extends StatefulWidget {
+  const AuthenticationWrapper({super.key});
+
+  @override
+  State<AuthenticationWrapper> createState() => _AuthenticationWrapperState();
+}
+
+class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
+  final DatabaseService _database = DatabaseService();
+  bool _updatedLogin = false;
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
-    
-    // Show loading indicator while checking auth state
-    if (userProvider.isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
+    final user = Provider.of<User?>(context);
+
+    if (user != null) {
+      // Update last login timestamp when user is already signed in
+      if (!_updatedLogin) {
+        _updatedLogin = true;
+        // Use Future.microtask to avoid calling setState during build
+        Future.microtask(() async {
+          await _database.updateLastLogin(user.uid);
+          print('Updated last login timestamp for existing user: ${user.displayName}');
+        });
+      }
+      return const HomePage();
+    }
+    return const SignInScreen();
+  }
+}
+
+class SignInScreen extends StatelessWidget {
+  const SignInScreen({super.key});
+ 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text('Sign In'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Welcome to Garden Helper',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: () async {
+                final authService = Provider.of<AuthService>(context, listen: false);
+                await authService.signInWithGoogle();
+              },
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Text('Sign in with Google'),
+              ),
+            ),
+          ],
         ),
-      );
-    }
-    
-    // Check if user is authenticated
-    if (userProvider.isAuthenticated) {
-      return HomeScreen();
-    } else {
-      return const LoginScreen();
-    }
+      ),
+    );
   }
 }
