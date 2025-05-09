@@ -103,7 +103,7 @@ bool ledState = HIGH;               // LED is active LOW on ESP8266
 void setup() {
   Serial.begin(115200);
   pinMode(SWITCH_PIN, OUTPUT);
-  digitalWrite(SWITCH_PIN, LOW);  // Initialize switch to OFF
+  digitalWrite(SWITCH_PIN, HIGH);  // Initialize switch to OFF
   
   // Initialize LED pin
   pinMode(LED_PIN, OUTPUT);
@@ -629,7 +629,7 @@ void updateSwitchState() {
   Serial.println(currentState ? "ON" : "OFF");
   
   // Set the pin HIGH or LOW based on the state
-  digitalWrite(SWITCH_PIN, currentState ? HIGH : LOW);
+  digitalWrite(SWITCH_PIN, currentState ? LOW : HIGH);
 }
 
 void setupOTA() {

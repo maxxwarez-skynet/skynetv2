@@ -36,7 +36,7 @@ class _SignInPageState extends State<SignInPage> {
                 const SizedBox(height: 80.0),
                 const Center(
                   child: Text(
-                    'Welcome to' '\nThe Garden Helper',
+                    'Welcome to' '\nThe SkyNet',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
