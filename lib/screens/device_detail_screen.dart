@@ -6,6 +6,7 @@ import 'package:skynet/services/database_service.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class DeviceDetailScreen extends StatefulWidget {
   final DeviceModel device;
@@ -26,6 +27,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
   Stream<Map<String, dynamic>>? _deviceStream;
   Stream<Map<String, dynamic>>? _latestDataStream;
   Stream<List<Map<String, dynamic>>>? _historyStream;
+  Stream<List<String>>? _imagesStream;
   
   @override
   void initState() {
@@ -52,6 +54,9 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
       
       // Set up the history stream
       _historyStream = _database.getDeviceDataHistoryStream(widget.device.id, limit: 20);
+      
+      // Set up the images stream
+      _imagesStream = _database.getDeviceImagesStream(widget.device.id, limit: 10);
       
       print('Streams set up for device: ${widget.device.id}');
       
@@ -95,7 +100,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
         title: Text(widget.device.name),
         backgroundColor: Colors.blue,
       ),
-      body: _deviceStream == null || _latestDataStream == null || _historyStream == null
+      body: _deviceStream == null || _latestDataStream == null || _historyStream == null || _imagesStream == null
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: _loadDeviceData,
@@ -191,6 +196,159 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
                                 ],
                               ),
                             ),
+                          );
+                        },
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Device Images with real-time updates
+                      StreamBuilder<List<String>>(
+                        stream: _imagesStream,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            print('Images stream error: ${snapshot.error}');
+                            return Card(
+                              elevation: 4,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Text('Error loading images: ${snapshot.error}'),
+                              ),
+                            );
+                          }
+                          
+                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Device Images',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Card(
+                                  elevation: 4,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Center(
+                                      child: Column(
+                                        children: [
+                                          Icon(Icons.image_not_supported, size: 48, color: Colors.grey[400]),
+                                          const SizedBox(height: 8),
+                                          const Text(
+                                            'No images available',
+                                            style: TextStyle(
+                                              fontStyle: FontStyle.italic,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+                          
+                          print('Images stream received ${snapshot.data?.length} items');
+                          
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Device Images',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                height: 200,
+                                child: Card(
+                                  elevation: 4,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: snapshot.data!.length,
+                                      itemBuilder: (context, index) {
+                                        final imageUrl = snapshot.data![index];
+                                        return Padding(
+                                          padding: const EdgeInsets.all(4.0),
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              // Show full-screen image when tapped
+                                              showDialog(
+                                                context: context,
+                                                builder: (context) => Dialog(
+                                                  child: Column(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      AppBar(
+                                                        title: const Text('Image Preview'),
+                                                        leading: IconButton(
+                                                          icon: const Icon(Icons.close),
+                                                          onPressed: () => Navigator.of(context).pop(),
+                                                        ),
+                                                        backgroundColor: Colors.blue,
+                                                      ),
+                                                      Flexible(
+                                                        child: InteractiveViewer(
+                                                          panEnabled: true,
+                                                          boundaryMargin: const EdgeInsets.all(20),
+                                                          minScale: 0.5,
+                                                          maxScale: 4,
+                                                          child: CachedNetworkImage(
+                                                            imageUrl: imageUrl,
+                                                            placeholder: (context, url) => const Center(
+                                                              child: CircularProgressIndicator(),
+                                                            ),
+                                                            errorWidget: (context, url, error) => const Icon(Icons.error),
+                                                            fit: BoxFit.contain,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(8),
+                                              child: CachedNetworkImage(
+                                                imageUrl: imageUrl,
+                                                placeholder: (context, url) => Container(
+                                                  width: 150,
+                                                  color: Colors.grey[200],
+                                                  child: const Center(
+                                                    child: CircularProgressIndicator(),
+                                                  ),
+                                                ),
+                                                errorWidget: (context, url, error) => Container(
+                                                  width: 150,
+                                                  color: Colors.grey[200],
+                                                  child: const Center(
+                                                    child: Icon(Icons.error),
+                                                  ),
+                                                ),
+                                                width: 150,
+                                                height: 180,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           );
                         },
                       ),

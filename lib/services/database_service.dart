@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:rxdart/rxdart.dart';
 
 class DatabaseService {
@@ -617,5 +618,69 @@ class DatabaseService {
       print('Error registering device: $e');
       rethrow; // Re-throw to handle in the UI
     }
+  }
+  
+  // Firebase Storage reference
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+  
+  // Get a list of image URLs for a specific device
+  Future<List<String>> getDeviceImages(String deviceId, {int limit = 10}) async {
+    try {
+      print('Fetching images for device: $deviceId');
+      
+      // Reference to the images folder for this device
+      final storageRef = _storage.ref().child('images/$deviceId');
+      
+      try {
+        // List all items in the folder
+        final ListResult result = await storageRef.listAll();
+        
+        // Get download URLs for each item, sorted by name (which might contain timestamp)
+        List<String> urls = [];
+        
+        // Process items in reverse order to get newest first (assuming filenames have timestamps)
+        for (var item in result.items.reversed) {
+          if (urls.length >= limit) break; // Respect the limit
+          
+          try {
+            String url = await item.getDownloadURL();
+            urls.add(url);
+          } catch (e) {
+            print('Error getting download URL for ${item.name}: $e');
+            // Continue with the next item
+          }
+        }
+        
+        print('Found ${urls.length} images for device $deviceId');
+        return urls;
+      } catch (e) {
+        print('Error listing images for device $deviceId: $e');
+        // Return empty list if folder doesn't exist or other error
+        return [];
+      }
+    } catch (e) {
+      print('Error in getDeviceImages: $e');
+      return [];
+    }
+  }
+  
+  // Stream of image URLs for a specific device
+  Stream<List<String>> getDeviceImagesStream(String deviceId, {int limit = 10}) {
+    // Create a BehaviorSubject to emit the latest image URLs
+    final imagesSubject = BehaviorSubject<List<String>>();
+    
+    // Initial fetch
+    getDeviceImages(deviceId, limit: limit).then((urls) {
+      imagesSubject.add(urls);
+    });
+    
+    // Set up a periodic refresh (every 30 seconds)
+    Stream.periodic(const Duration(seconds: 30)).listen((_) {
+      getDeviceImages(deviceId, limit: limit).then((urls) {
+        imagesSubject.add(urls);
+      });
+    });
+    
+    return imagesSubject.stream;
   }
 }
