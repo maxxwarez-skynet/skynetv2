@@ -11,7 +11,7 @@ class CaptivePortalScreen extends StatefulWidget {
     required this.url,
     required this.onSetupComplete,
   });
-
+ 
   @override
   State<CaptivePortalScreen> createState() => _CaptivePortalScreenState();
 }

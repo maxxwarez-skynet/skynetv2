@@ -56,7 +56,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
+ 
 class AuthenticationWrapper extends StatefulWidget {
   const AuthenticationWrapper({super.key});
 
