@@ -63,7 +63,7 @@ class AuthenticationWrapper extends StatefulWidget {
   @override
   State<AuthenticationWrapper> createState() => _AuthenticationWrapperState();
 }
-
+  
 class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
   final DatabaseService _database = DatabaseService();
   bool _updatedLogin = false;
